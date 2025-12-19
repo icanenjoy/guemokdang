@@ -15,8 +15,7 @@ const Container = styled.div`
     display: flex;
     gap: 24px;
     align-items: flex-start;
-    padding: 24px;
-    padding-bottom: 160px;
+
     box-sizing: border-box;
     font-family:
         -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans KR',
@@ -37,7 +36,7 @@ const FormWrapper = styled.form`
 
 const Fields = styled.div`
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    // grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 10px;
     margin-bottom: 12px;
 `
@@ -96,8 +95,9 @@ const NumberInput = styled.input.attrs({ type: 'number' })`
     font-size: 14px;
     color: #111827;
     text-align: right;
-    min-width: 92px;
-    max-width: 140px;
+    /* 너비 축소: 가로로 길지 않게 고정 */
+    min-width: 64px;
+    max-width: 96px;
     &:focus {
         border-color: rgba(31, 111, 235, 0.18);
         box-shadow: 0 6px 18px rgba(31, 111, 235, 0.06);
@@ -192,6 +192,23 @@ const Pre = styled.pre`
     color: #111827;
     margin: 0;
 `
+
+// 추가: 제출 내용 복사 버튼 스타일
+const CopyButton = styled.button`
+    margin-left: 8px;
+    padding: 6px 10px;
+    font-size: 13px;
+    background: transparent;
+    border: 1px solid ${vars.border};
+    color: ${vars.muted};
+    border-radius: 6px;
+    cursor: pointer;
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+`
+
 const FixedSubmit = styled.button`
     position: fixed;
     left: 50%;
@@ -312,6 +329,9 @@ export default function CheckForm({ onSubmit }) {
     })
 
     const [submitted, setSubmitted] = useState(null)
+
+    // 복사 상태
+    const [copied, setCopied] = useState(false)
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target
@@ -506,6 +526,27 @@ export default function CheckForm({ onSubmit }) {
         else console.log('폼 제출:', payload)
     }
 
+    const copySubmitted = async () => {
+        if (!submitted) return
+        try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(submitted)
+            } else {
+                // fallback
+                const ta = document.createElement('textarea')
+                ta.value = submitted
+                document.body.appendChild(ta)
+                ta.select()
+                document.execCommand('copy')
+                document.body.removeChild(ta)
+            }
+            setCopied(true)
+            setTimeout(() => setCopied(false), 2000)
+        } catch (err) {
+            console.error('복사 실패', err)
+        }
+    }
+
     // helper: step으로 조절 (step은 number 또는 string)
     const adjust = (name, delta) => {
         setForm((prev) => {
@@ -516,13 +557,61 @@ export default function CheckForm({ onSubmit }) {
         })
     }
 
+    // Enter 누르면 다음 입력으로 포커스 이동 (버튼/비표시 요소 제외)
+    const handleKeyDown = (e) => {
+        if (e.key !== 'Enter') return
+        e.preventDefault()
+        const formEl =
+            e.target.form ||
+            (e.currentTarget &&
+                e.currentTarget.closest &&
+                e.currentTarget.closest('form'))
+        if (!formEl) return
+
+        // Enter 이동 대상은 입력 계열만 — 버튼/복사버튼 등 제외
+        const selector =
+            'input[type="number"], input[type="text"], input:not([type]), textarea, select'
+        const nodes = Array.from(formEl.querySelectorAll(selector))
+
+        const focusable = nodes.filter((el) => {
+            if (!el) return false
+            if (el.disabled) return false
+            if (
+                el.getAttribute &&
+                el.getAttribute('data-skip-enter') === 'true'
+            )
+                return false
+            // 화면상 보이는 요소만
+            try {
+                const rect = el.getBoundingClientRect()
+                if (rect.width === 0 && rect.height === 0) return false
+            } catch (err) {}
+            return true
+        })
+
+        const idx = focusable.indexOf(e.target)
+        if (idx === -1) {
+            // 현재 요소가 리스트에 없으면 포커스 유지
+            e.target.focus && e.target.focus()
+            return
+        }
+
+        const next = focusable[idx + 1]
+        if (next) {
+            next.focus()
+        } else {
+            // 마지막 항목이면 포커스 유지 (사라지는 현상 방지)
+            e.target.focus && e.target.focus()
+        }
+    }
+
     // field 정의로 렌더링 단순화 (각 항목에 스텝 설정 가능)
     const fieldDefs = [
         { name: 'omijaWeight', label: '오미자 무게', step: 0.01 },
         { name: 'ssanghwaWeight', label: '쌍화차 무게', step: 0.01 },
         { name: 'sujeonggwaWeight', label: '수정과 무게', step: 0.01 },
         { name: 'hodugwajaWeight', label: '호두과자 제조', step: 0.001 },
-        { name: 'Divider', label: '' },
+        { name: 'Divider' },
         { name: 'ssanghwaHotHall', label: '쌍화차[HOT]' },
         { name: 'sujeonggwaHotHall', label: '수정과[HOT]' },
         { name: 'sujeonggwaIceHall', label: '수정과[ICE]' },
@@ -537,26 +626,26 @@ export default function CheckForm({ onSubmit }) {
         { name: 'hodugwajaHall', label: '호두과자' },
         { name: 'lemonHall', label: '레몬진저빙수' },
         { name: 'ssanghwaIceHall', label: '쌍화차[ICE]' },
-        { name: 'pumkinHall', label: '단호박 죽' },
+        { name: 'pumkinHall', label: '단호박죽' },
         { name: 'Divider' },
         { name: 'ssanghwaHotTakeout', label: '쌍화차[HOT](포장)' },
         { name: 'sujeonggwaHotTakeout', label: '수정과[HOT](포장)' },
         { name: 'sujeonggwaIceTakeout', label: '수정과[ICE](포장)' },
         { name: 'omijaHotTakeout', label: '오미자[HOT](포장)' },
         { name: 'omijaIceTakeout', label: '오미자[ICE](포장)' },
-        { name: 'coffeeHotTakeout', label: '커피[HOT] (포장)' },
-        { name: 'coffeeIceTakeout', label: '커피[ICE] (포장)' },
+        { name: 'coffeeHotTakeout', label: '커피[HOT](포장)' },
+        { name: 'coffeeIceTakeout', label: '커피[ICE]포장)' },
 
         { name: 'ssanghwabottle', label: '쌍화차 병' },
         { name: 'sujeonggwaBottle', label: '수정과 병' },
         { name: 'omijaBottle', label: '오미자 병' },
 
-        { name: 'patjukTakeout', label: '금옥팥죽 (포장)' },
-        { name: 'sweetPatjukTakeout', label: '단팥죽 (포장)' },
-        { name: 'seoulTakeout', label: '서울빙수 (포장)' },
-        { name: 'hodugwajaTakeout', label: '호두과자 (포장)' },
-        { name: 'lemonTakeout', label: '레몬진저빙수 (포장)' },
-        { name: 'ssanghwaIceTakeout', label: '쌍화차[ICE] (포장)' },
+        { name: 'patjukTakeout', label: '금옥팥죽(포장)' },
+        { name: 'sweetPatjukTakeout', label: '단팥죽(포장)' },
+        { name: 'seoulTakeout', label: '서울빙수(포장)' },
+        { name: 'hodugwajaTakeout', label: '호두과자(포장)' },
+        { name: 'lemonTakeout', label: '레몬진저빙수(포장)' },
+        { name: 'ssanghwaIceTakeout', label: '쌍화차[ICE](포장)' },
 
         { name: 'patjukPouch', label: '금옥팥죽 파우치' },
         { name: 'sweetPatjukPouch', label: '단팥죽 파우치' },
@@ -580,6 +669,7 @@ export default function CheckForm({ onSubmit }) {
                                             step={f.step || 1}
                                             value={form[f.name]}
                                             onChange={handleChange}
+                                            onKeyDown={handleKeyDown}
                                         />
                                         <Stepper aria-hidden>
                                             <StepButton
@@ -624,6 +714,7 @@ export default function CheckForm({ onSubmit }) {
                                 placeholder="직원 피드백 입력"
                                 value={form.seoulFeedback}
                                 onChange={handleChange}
+                                onKeyDown={handleKeyDown}
                             />
                         </FeedbackLabel>
                     </Field>
@@ -635,6 +726,7 @@ export default function CheckForm({ onSubmit }) {
                                 placeholder="직원 피드백 입력"
                                 value={form.lemonFeedback}
                                 onChange={handleChange}
+                                onKeyDown={handleKeyDown}
                             />
                         </FeedbackLabel>
                     </Field>
@@ -646,6 +738,7 @@ export default function CheckForm({ onSubmit }) {
                                 placeholder="직원 피드백 입력"
                                 value={form.patjukFeedback}
                                 onChange={handleChange}
+                                onKeyDown={handleKeyDown}
                             />
                         </FeedbackLabel>
                     </Field>
@@ -657,6 +750,7 @@ export default function CheckForm({ onSubmit }) {
                                 placeholder="직원 피드백 입력"
                                 value={form.sweetPatjukFeedback}
                                 onChange={handleChange}
+                                onKeyDown={handleKeyDown}
                             />
                         </FeedbackLabel>
                     </Field>
@@ -668,6 +762,7 @@ export default function CheckForm({ onSubmit }) {
                                 placeholder="직원 피드백 입력"
                                 value={form.pumkinFeedback}
                                 onChange={handleChange}
+                                onKeyDown={handleKeyDown}
                             />
                         </FeedbackLabel>
                     </Field>
@@ -679,6 +774,7 @@ export default function CheckForm({ onSubmit }) {
                                 placeholder="직원 피드백 입력"
                                 value={form.omijaFeedback}
                                 onChange={handleChange}
+                                onKeyDown={handleKeyDown}
                             />
                         </FeedbackLabel>
                     </Field>
@@ -690,6 +786,7 @@ export default function CheckForm({ onSubmit }) {
                                 placeholder="직원 피드백 입력"
                                 value={form.ssanghwaFeedback}
                                 onChange={handleChange}
+                                onKeyDown={handleKeyDown}
                             />
                         </FeedbackLabel>
                     </Field>
@@ -701,6 +798,7 @@ export default function CheckForm({ onSubmit }) {
                                 placeholder="직원 피드백 입력"
                                 value={form.sujeonggwaFeedback}
                                 onChange={handleChange}
+                                onKeyDown={handleKeyDown}
                             />
                         </FeedbackLabel>
                     </Field>
@@ -712,6 +810,7 @@ export default function CheckForm({ onSubmit }) {
                                 placeholder="직원 피드백 입력"
                                 value={form.coffeeFeedback}
                                 onChange={handleChange}
+                                onKeyDown={handleKeyDown}
                             />
                         </FeedbackLabel>
                     </Field>
@@ -723,6 +822,7 @@ export default function CheckForm({ onSubmit }) {
                                 placeholder="직원 피드백 입력"
                                 value={form.hodugwajaFeedback}
                                 onChange={handleChange}
+                                onKeyDown={handleKeyDown}
                             />
                         </FeedbackLabel>
                     </Field>
@@ -732,7 +832,19 @@ export default function CheckForm({ onSubmit }) {
             </FormWrapper>
 
             <Preview ref={previewRef}>
-                <PreviewTitle>제출 결과 (오른쪽)</PreviewTitle>
+                <div
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        marginBottom: 8,
+                    }}>
+                    <PreviewTitle>제출 결과</PreviewTitle>
+                    <CopyButton onClick={copySubmitted} disabled={!submitted}>
+                        {copied ? '복사됨' : '복사'}
+                    </CopyButton>
+                </div>
+
                 {submitted ? (
                     <>
                         <Pre>{submitted}</Pre>
