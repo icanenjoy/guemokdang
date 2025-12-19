@@ -77,7 +77,7 @@ const Stepper = styled.div`
 
 const Button = styled.div`
     border: none;
-    background: ${vars.accent};
+    background: ${(props) => (props.$active ? vars.accent : vars.bg)};
     padding: 8px 16px;
     width: 50%;
     height: 50%;
@@ -87,15 +87,11 @@ const Button = styled.div`
     cursor: pointer;
     font-size: 12px;
     line-height: 1;
-    color: #ffffffff;
+    color: ${(props) => (props.$active ? vars.card : vars.accent)};
     border-radius: 100px;
 
     &:active {
         transform: translateY(1px);
-    }
-
-    @media (max-width: 600px) {
-        width: 36px;
     }
 `
 
@@ -290,7 +286,7 @@ export default function InternetForm({ onSubmit }) {
     return (
         <Container>
             <FormWrapper onSubmit={handleSubmit} noValidate>
-                <Button onClick={() => setType(!type)}>
+                <Button onClick={() => setType(!type)} $active={type}>
                     {type ? '요청드립니다' : '입고되었습니다'}
                 </Button>
                 <Fields>
