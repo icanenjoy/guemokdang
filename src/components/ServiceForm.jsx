@@ -36,7 +36,7 @@ const FormWrapper = styled.form`
 
 const Fields = styled.div`
     display: grid;
-    // grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
     gap: 10px;
     margin-bottom: 12px;
 `
@@ -77,8 +77,8 @@ const Stepper = styled.div`
 
 const Button = styled.div`
     border: none;
-    background: ${(props) => (props.$active ? vars.accent : vars.bg)};
-    padding: 8px 16px;
+    background: ${(props) => (props.$action ? vars.accent : vars.bg)};
+    padding: 8px 20px;
     width: 50%;
     height: 50%;
     display: flex;
@@ -87,11 +87,16 @@ const Button = styled.div`
     cursor: pointer;
     font-size: 12px;
     line-height: 1;
-    color: ${(props) => (props.$active ? vars.card : vars.accent)};
+    white-space: nowrap;
+    color: ${(props) => (props.$action ? vars.card : vars.muted)};
     border-radius: 100px;
 
     &:active {
         transform: translateY(1px);
+    }
+
+    @media (max-width: 600px) {
+        width: 36px;
     }
 `
 
@@ -154,7 +159,22 @@ const CopyButton = styled.button`
         cursor: not-allowed;
     }
 `
-
+const TextInput = styled.input.attrs({ type: 'text' })`
+    width: 100%;
+    height: 40px;
+    padding: 8px 10px;
+    border: 1px solid ${vars.border};
+    border-radius: 6px;
+    font-size: 14px;
+    color: #111827;
+    background: ${vars.card};
+    outline: none;
+    box-sizing: border-box;
+    &:focus {
+        border-color: rgba(31, 111, 235, 0.18);
+        box-shadow: 0 6px 18px rgba(31, 111, 235, 0.06);
+    }
+`
 const FixedSubmit = styled.button`
     position: fixed;
     left: 50%;
@@ -196,6 +216,23 @@ const FixedSubmit = styled.button`
         border-radius: 12px;
     }
 `
+const Label = styled.label`
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* 제목 왼쪽, 입력 오른쪽으로 정렬 */
+    gap: 11px;
+    width: 100%;
+`
+
+const Title = styled.div`
+    font-size: 15px;
+    color: #111827;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    flex: 1; /* 왼쪽 끝에 붙게 차지 */
+    text-align: left;
+`
 const Textarea = styled.textarea`
     width: 100%;
     min-height: 88px;
@@ -203,7 +240,7 @@ const Textarea = styled.textarea`
     border: 1px solid ${vars.border};
     border-radius: 6px;
     resize: vertical;
-    font-size: 16px;
+    font-size: 14px;
     color: #111827;
     background: ${vars.card};
     outline: none;
@@ -213,11 +250,46 @@ const Textarea = styled.textarea`
         box-shadow: 0 6px 18px rgba(31, 111, 235, 0.06);
     }
 `
+const LABEL_MAP = {
+    redBean: '팥',
+    fineBean: '고운앙금',
+    wholeBean: '통팥',
+    chestnut: '밤',
+    walnut: '호두',
+    nutMix: '견과',
+    redDate: '대추',
+    ssanghwa: '쌍화',
+    raspberry: '라즈베리',
+    milkTea: '밀크티',
+    driedPersimmon: '상주곶감',
+    jeju: '제주녹차',
+    matcha: '보성말차',
+    whiteBean: '백앙금',
+    blackSesame: '흑임자',
+    sweetPotato: '고구마',
+    pumpkin: '단호박',
+}
 
-export default function InternetForm({ onSubmit }) {
+export default function ServiceForm({ onSubmit }) {
     const previewRef = useRef(null)
     const [form, setForm] = useState({
-        internetContent: '',
+        redBean: false, // 팥
+        fineBean: false, // 고운앙금
+        wholeBean: false, // 통팥
+        chestnut: false, // 밤
+        walnut: false, // 호두
+        nutMix: false, // 견과
+        redDate: false, // 대추
+        ssanghwa: false, // 쌍화
+        raspberry: false, // 라즈베리
+        milkTea: false, // 밀크티
+        driedPersimmon: false, // 상주곶감
+        jeju: false, // 제주녹차
+        matcha: false, // 보성말차
+        whiteBean: false, // 백앙금
+        blackSesame: false, // 흑임자
+        sweetPotato: false, // 고구마
+        pumpkin: false, // 단호박
     })
 
     const [submitted, setSubmitted] = useState(null)
@@ -226,24 +298,31 @@ export default function InternetForm({ onSubmit }) {
     const [copied, setCopied] = useState(false)
     const [type, setType] = useState(true)
 
-    const handleChange = (e) => {
-        const { name, value } = e.target
-
-        setForm((prev) => ({ ...prev, [name]: value }))
+    const handleChange = (name) => {
+        setForm((prev) => ({ ...prev, [name]: !prev[name] }))
     }
 
-    const formatReport = (f) => {
+    const formatReport = (titleDate, f) => {
+        const selected = Object.entries(f)
+            .filter(([_, value]) => value === true)
+            .map(([k]) => LABEL_MAP[k])
+
         const lines = []
-        lines.push('[서초점 인터넷 발주]\n')
-        lines.push(`${f.internetContent}\n`)
-        lines.push(`${type ? '요청드립니다.' : '입고되었습니다.'}`)
+        lines.push(
+            titleDate +
+                ' 소비기한 임박 양갱으로 시식 서비스 진행 중입니다' +
+                `(${selected.filter(Boolean).join('/')})`
+        )
         return lines.join('\n')
     }
 
     const handleSubmit = (e) => {
         e.preventDefault()
         const payload = { ...form }
-        const report = formatReport(payload)
+        const today = new Date()
+        const titleDate = `${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')} 서초점 ${String(today.getHours()).padStart(2, '0')}:${String(today.getMinutes()).padStart(2, '0')}`
+        const report = formatReport(titleDate, payload)
+
         setSubmitted(report)
 
         // 모바일(<=900px)에서 제출 시 결과 영역으로 스무스 스크롤
@@ -286,19 +365,92 @@ export default function InternetForm({ onSubmit }) {
     return (
         <Container>
             <FormWrapper onSubmit={handleSubmit} noValidate>
-                <Button onClick={() => setType(!type)} $active={type}>
-                    {type ? '요청드립니다' : '입고되었습니다'}
-                </Button>
                 <Fields>
-                    <Field key="internetContent">
-                        <FeedbackLabel>
-                            <Textarea
-                                name="internetContent"
-                                value={form.internetContent}
-                                onChange={handleChange}
-                            />
-                        </FeedbackLabel>
-                    </Field>
+                    <Button
+                        onClick={() => handleChange('redBean')}
+                        $action={form.redBean}>
+                        팥
+                    </Button>
+                    <Button
+                        $action={form.fineBean}
+                        onClick={() => handleChange('fineBean')}>
+                        고운앙금
+                    </Button>
+                    <Button
+                        $action={form.wholeBean}
+                        onClick={() => handleChange('wholeBean')}>
+                        통팥
+                    </Button>
+                    <Button
+                        $action={form.chestnut}
+                        onClick={() => handleChange('chestnut')}>
+                        밤
+                    </Button>
+                    <Button
+                        $action={form.walnut}
+                        onClick={() => handleChange('walnut')}>
+                        호두
+                    </Button>
+                    <Button
+                        $action={form.nutMix}
+                        onClick={() => handleChange('nutMix')}>
+                        견과
+                    </Button>
+                    <Button
+                        $action={form.redDate}
+                        onClick={() => handleChange('redDate')}>
+                        대추
+                    </Button>
+                    <Button
+                        $action={form.ssanghwa}
+                        onClick={() => handleChange('ssanghwa')}>
+                        쌍화
+                    </Button>
+                    <Button
+                        $action={form.raspberry}
+                        onClick={() => handleChange('raspberry')}>
+                        라즈베리
+                    </Button>
+                    <Button
+                        $action={form.milkTea}
+                        onClick={() => handleChange('milkTea')}>
+                        밀크티
+                    </Button>
+                    <Button
+                        $action={form.driedPersimmon}
+                        onClick={() => handleChange('driedPersimmon')}>
+                        상주곶감
+                    </Button>
+                    <Button
+                        $action={form.jeju}
+                        onClick={() => handleChange('jeju')}>
+                        제주녹차
+                    </Button>
+                    <Button
+                        $action={form.matcha}
+                        onClick={() => handleChange('matcha')}>
+                        보성말차
+                    </Button>
+                    <Button
+                        $action={form.whiteBean}
+                        onClick={() => handleChange('whiteBean')}>
+                        백앙금
+                    </Button>
+                    <Button
+                        $action={form.blackSesame}
+                        onClick={() => handleChange('blackSesame')}>
+                        흑임자
+                    </Button>
+                    <Button
+                        $action={form.sweetPotato}
+                        onClick={() => handleChange('sweetPotato')}>
+                        고구마
+                    </Button>
+                    <Button
+                        $action={form.pumpkin}
+                        onClick={() => handleChange('pumpkin')}>
+                        단호박
+                    </Button>
                 </Fields>
             </FormWrapper>
 

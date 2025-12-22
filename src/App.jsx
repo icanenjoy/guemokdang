@@ -4,6 +4,7 @@ import CheckForm from './components/CheckForm'
 import SalesForm from './components/SalesForm'
 import InternetForm from './components/InternetForm'
 import LastForm from './components/LastForm'
+import ServiceForm from './components/ServiceForm'
 
 const vars = {
     bg: '#f3f6fb',
@@ -127,6 +128,13 @@ export default function App() {
                         aria-pressed={active === 'last'}>
                         마감보고
                     </TabButton>
+                    <TabButton
+                        type="button"
+                        active={active === 'service'}
+                        onClick={() => setActive('service')}
+                        aria-pressed={active === 'service'}>
+                        양갱 서비스
+                    </TabButton>
                 </TabGroup>
 
                 <Content>
@@ -180,6 +188,19 @@ export default function App() {
                                 </TitleGroup>
                             </Header>
                             <LastForm onSubmit={() => {}} />
+                        </>
+                    )}
+                    {active === 'service' && (
+                        <>
+                            <Header>
+                                <TitleGroup>
+                                    <Title>양갱 서비스</Title>
+                                    <Subtitle>
+                                        양갱 서비스를 기록하세요
+                                    </Subtitle>
+                                </TitleGroup>
+                            </Header>
+                            <ServiceForm onSubmit={() => {}} />
                         </>
                     )}
                 </Content>

@@ -92,7 +92,7 @@ const NumberInput = styled.input.attrs({ type: 'number' })`
     border-radius: 6px;
     background: ${vars.card};
     outline: none;
-    font-size: 14px;
+    font-size: 16px;
     color: #111827;
     text-align: right;
     /* 너비 축소: 가로로 길지 않게 고정 */
@@ -263,7 +263,7 @@ const TextInput = styled.input.attrs({ type: 'text' })`
     padding: 8px 10px;
     border: 1px solid ${vars.border};
     border-radius: 6px;
-    font-size: 14px;
+    font-size: 16px;
     color: #111827;
     background: ${vars.card};
     outline: none;

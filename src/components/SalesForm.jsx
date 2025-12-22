@@ -91,7 +91,7 @@ const NumberInput = styled.input.attrs({ type: 'number' })`
     border-radius: 6px;
     background: ${vars.card};
     outline: none;
-    font-size: 14px;
+    font-size: 16px;
     color: #111827;
     text-align: right;
     /* 너비 축소: 가로로 길지 않게 고정 */

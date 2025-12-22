@@ -164,7 +164,7 @@ const TextInput = styled.input.attrs({ type: 'text' })`
     padding: 8px 10px;
     border: 1px solid ${vars.border};
     border-radius: 6px;
-    font-size: 14px;
+    font-size: 16px;
     color: #111827;
     background: ${vars.card};
     outline: none;
@@ -239,7 +239,7 @@ const Textarea = styled.textarea`
     border: 1px solid ${vars.border};
     border-radius: 6px;
     resize: vertical;
-    font-size: 14px;
+    font-size: 16px;
     color: #111827;
     background: ${vars.card};
     outline: none;
