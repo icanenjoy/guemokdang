@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import styled from 'styled-components'
 
 const vars = {
@@ -257,25 +257,62 @@ const GapDisplay = styled.div`
     align-items: center;
 `
 
+const STORAGE_KEY = 'sales_form_data'
+
+// 초기 폼 상태 (로컬스토리지에서 불러온 데이터로 덮어쓰기 전 상태)
+const initialForm = {
+    totalSales: '',
+    cardSales: '',
+    cashSales: '',
+    seoulPay: '',
+    bankTransfer: '',
+    cash: '',
+    employee: '',
+    sejong: '',
+    milion: '',
+    naver: '',
+}
+
 export default function SalesForm({ onSubmit }) {
     const previewRef = useRef(null)
-    const [form, setForm] = useState({
-        totalSales: '',
-        cardSales: '',
-        cashSales: '',
-        seoulPay: '',
-        bankTransfer: '',
-        cash: '',
-        employee: '',
-        sejong: '',
-        milion: '',
-        naver: '',
-    })
+    const saveTimer = useRef(null)
+    const [form, setForm] = useState(initialForm)
 
     const [submitted, setSubmitted] = useState(null)
 
     // 복사 상태
     const [copied, setCopied] = useState(false)
+
+    // 자동 저장: 초기 로드 및 디바운스 저장
+    useEffect(() => {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY)
+            if (raw) setForm((prev) => ({ ...prev, ...JSON.parse(raw) }))
+        } catch (err) {
+            console.error('저장 불러오기 실패', err)
+        }
+    }, [])
+
+    useEffect(() => {
+        if (saveTimer.current) clearTimeout(saveTimer.current)
+        saveTimer.current = setTimeout(() => {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(form))
+            } catch (err) {
+                console.error('저장 실패', err)
+            }
+        }, 500)
+        return () => {
+            if (saveTimer.current) clearTimeout(saveTimer.current)
+        }
+    }, [form])
+
+    const clearSaved = () => {
+        localStorage.removeItem(STORAGE_KEY)
+        setForm(initialForm)
+        setSubmitted(null)
+        setCopied(false)
+    }
 
     // 레이블과 금액 사이 공백(스페이스) 수 조절 (0칸 기준으로 시작)
     const [gapSpaces, setGapSpaces] = useState(0)
@@ -572,6 +609,12 @@ export default function SalesForm({ onSubmit }) {
                     <CopyButton onClick={copySubmitted} disabled={!submitted}>
                         {copied ? '복사됨' : '복사'}
                     </CopyButton>
+                    <CopyButton
+                        type="button"
+                        onClick={clearSaved}
+                        style={{ marginLeft: 8 }}>
+                        저장 지우기
+                    </CopyButton>
 
                     {/* 레이블-금액 공백 조절 UI */}
                     <div
@@ -581,18 +624,16 @@ export default function SalesForm({ onSubmit }) {
                             gap: 8,
                             marginLeft: 8,
                         }}>
-                        <GapButton
-                            type="button"
-                            onClick={decreaseGap}
-                            aria-label="공백 줄이기">
-                            −
+                        <GapButton type="button" onClick={decreaseGap}>
+                            -
                         </GapButton>
-                        <GapDisplay>{gapSpaces}칸</GapDisplay>
-                        <GapButton
-                            type="button"
-                            onClick={increaseGap}
-                            aria-label="공백 늘리기">
-                            ＋
+                        <GapDisplay>
+                            {' '
+                                .repeat(Math.min(5, gapSpaces))
+                                .replace(/ /g, '·')}
+                        </GapDisplay>
+                        <GapButton type="button" onClick={increaseGap}>
+                            +
                         </GapButton>
                     </div>
                 </div>
@@ -600,22 +641,6 @@ export default function SalesForm({ onSubmit }) {
                 {submitted ? (
                     <>
                         <Pre>{submitted}</Pre>
-
-                        {totalsMismatch && (
-                            <Warning>카드+현금매출이 총매출과 달라요.</Warning>
-                        )}
-                        {cashMismatch && (
-                            <Warning>
-                                서울페이+계좌이체+현금 합이 총 현금 매출과
-                                달라요.
-                            </Warning>
-                        )}
-                        {
-                            <Discount>
-                                할인 총액이 {discountsSum.toLocaleString()}원
-                                입니다.
-                            </Discount>
-                        }
                     </>
                 ) : (
                     <SubmittedTime style={{ color: vars.muted }}>

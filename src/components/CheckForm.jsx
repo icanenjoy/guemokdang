@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import styled from 'styled-components'
 
 const vars = {
@@ -274,64 +274,93 @@ const TextInput = styled.input.attrs({ type: 'text' })`
     }
 `
 
+const STORAGE_KEY = 'checkForm:v1'
+
+const initialForm = {
+    ssanghwaHotHall: '',
+    ssanghwaIceHall: '',
+    sujeonggwaHotHall: '',
+    sujeonggwaIceHall: '',
+    omijaHotHall: '',
+    omijaIceHall: '',
+    coffeeHotHall: '',
+    coffeeIceHall: '',
+    patjukHall: '',
+    sweetPatjukHall: '',
+    seoulHall: '',
+    hodugwajaHall: '',
+    lemonHall: '',
+    pumkinHall: '',
+    ssanghwaHotTakeout: '',
+    ssanghwaIceTakeout: '',
+    sujeonggwaHotTakeout: '',
+    sujeonggwaIceTakeout: '',
+    omijaHotTakeout: '',
+    omijaIceTakeout: '',
+    coffeeHotTakeout: '',
+    coffeeIceTakeout: '',
+    ssanghwabottle: '',
+    sujeonggwaBottle: '',
+    omijaBottle: '',
+    patjukTakeout: '',
+    sweetPatjukTakeout: '',
+    seoulTakeout: '',
+    hodoogwajaTakeout: '',
+    lemonTakeout: '',
+    patjukPouch: '',
+    sweetPatjukPouch: '',
+    pumkinPouch: '',
+    omijaWeight: '',
+    ssanghwaWeight: '',
+    sujeonggwaWeight: '',
+    hodugwajaWeight: '',
+    seoulFeedback: '',
+    lemonFeedback: '',
+    patjukFeedback: '',
+    sweetPatjukFeedback: '',
+    pumkinFeedback: '',
+    omijaFeedback: '',
+    ssanghwaFeedback: '',
+    sujeonggwaFeedback: '',
+    coffeeFeedback: '',
+    hodugwajaFeedback: '',
+}
+
 export default function CheckForm({ onSubmit }) {
     const previewRef = useRef(null)
-    const [form, setForm] = useState({
-        ssanghwaHotHall: '',
-        ssanghwaIceHall: '',
-        sujeonggwaHotHall: '',
-        sujeonggwaIceHall: '',
-        omijaHotHall: '',
-        omijaIceHall: '',
-        coffeeHotHall: '',
-        coffeeIceHall: '',
-        patjukHall: '',
-        sweetPatjukHall: '',
-        seoulHall: '',
-        hodugwajaHall: '',
-        lemonHall: '',
-        pumkinHall: '',
-        ssanghwaHotTakeout: '',
-        ssanghwaIceTakeout: '',
-        sujeonggwaHotTakeout: '',
-        sujeonggwaIceTakeout: '',
-        omijaHotTakeout: '',
-        omijaIceTakeout: '',
-        coffeeHotTakeout: '',
-        coffeeIceTakeout: '',
-        ssanghwabottle: '',
-        sujeonggwaBottle: '',
-        omijaBottle: '',
-        patjukTakeout: '',
-        sweetPatjukTakeout: '',
-        seoulTakeout: '',
-        hodoogwajaTakeout: '',
-        lemonTakeout: '',
-        patjukPouch: '',
-        sweetPatjukPouch: '',
-        pumkinPouch: '',
-        // weight fields (소수점 허용)
-        omijaWeight: '',
-        ssanghwaWeight: '',
-        sujeonggwaWeight: '',
-        hodugwajaWeight: '',
-        // 서울빙수 자유 피드백
-        seoulFeedback: '',
-        lemonFeedback: '',
-        patjukFeedback: '',
-        sweetPatjukFeedback: '',
-        pumkinFeedback: '',
-        omijaFeedback: '',
-        ssanghwaFeedback: '',
-        sujeonggwaFeedback: '',
-        coffeeFeedback: '',
-        hodugwajaFeedback: '',
-    })
-
-    const [submitted, setSubmitted] = useState(null)
-
-    // 복사 상태
+    const [form, setForm] = useState(initialForm)
+    const [submitted, setSubmitted] = useState('')
     const [copied, setCopied] = useState(false)
+
+    // 자동 저장 관련
+    const saveTimer = useRef(null)
+    useEffect(() => {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY)
+            if (raw) setForm((prev) => ({ ...prev, ...JSON.parse(raw) }))
+        } catch (err) {
+            console.error('저장 불러오기 실패', err)
+        }
+    }, [])
+    useEffect(() => {
+        if (saveTimer.current) clearTimeout(saveTimer.current)
+        saveTimer.current = setTimeout(() => {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(form))
+            } catch (err) {
+                console.error('저장 실패', err)
+            }
+        }, 500)
+        return () => {
+            if (saveTimer.current) clearTimeout(saveTimer.current)
+        }
+    }, [form])
+    const clearSaved = () => {
+        localStorage.removeItem(STORAGE_KEY)
+        setForm(initialForm)
+        setCopied(false)
+        setSubmitted('')
+    }
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target
@@ -340,6 +369,11 @@ export default function CheckForm({ onSubmit }) {
             return
         }
         if (type === 'number') {
+            // 빈값 허용: 사용자가 입력을 완전히 지울 수 있도록 처리
+            if (value === '') {
+                setForm((prev) => ({ ...prev, [name]: '' }))
+                return
+            }
             const parsed = parseFloat(value)
             const newValue = isNaN(parsed) ? 0 : parsed // 소수점 허용
             setForm((prev) => ({ ...prev, [name]: newValue }))
@@ -397,7 +431,7 @@ export default function CheckForm({ onSubmit }) {
 
             lines.push(`•${title}`)
             lines.push(
-                `총 판매 수량 : 매장 ${iceHall} + 포장 ${iceTake} / 핫 ${hotHall} + 포장 ${hotTake} / 병입 ${bottle}`
+                `총 판매 수량 : 아이스 ${iceHall} + 포장 ${iceTake} / 핫 ${hotHall} + 포장 ${hotTake} / 병입 ${bottle}`
             )
             lines.push(
                 `직원 피드백 : ${feedback === '' ? (iceHall + hotHall === 0 ? '-' : iceHall + hotHall > 1 ? '모두 빈 잔으로 회수되었습니다.' : '빈 잔으로 회수되었습니다.') : feedback}\n`
@@ -634,7 +668,7 @@ export default function CheckForm({ onSubmit }) {
         { name: 'omijaHotTakeout', label: '오미자[HOT](포장)' },
         { name: 'omijaIceTakeout', label: '오미자[ICE](포장)' },
         { name: 'coffeeHotTakeout', label: '커피[HOT](포장)' },
-        { name: 'coffeeIceTakeout', label: '커피[ICE]포장)' },
+        { name: 'coffeeIceTakeout', label: '커피[ICE](포장)' },
 
         { name: 'ssanghwabottle', label: '쌍화차 병' },
         { name: 'sujeonggwaBottle', label: '수정과 병' },
@@ -842,6 +876,12 @@ export default function CheckForm({ onSubmit }) {
                     <PreviewTitle>제출 결과</PreviewTitle>
                     <CopyButton onClick={copySubmitted} disabled={!submitted}>
                         {copied ? '복사됨' : '복사'}
+                    </CopyButton>
+                    <CopyButton
+                        type="button"
+                        onClick={clearSaved}
+                        style={{ marginLeft: 8 }}>
+                        저장 지우기
                     </CopyButton>
                 </div>
 

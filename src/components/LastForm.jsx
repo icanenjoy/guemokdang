@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import styled from 'styled-components'
 
 const vars = {
@@ -250,8 +250,18 @@ const Textarea = styled.textarea`
     }
 `
 
+const STORAGE_KEY = 'lastForm:v1'
+const initialForm = {
+    finishContent: '',
+    todoList: '',
+    menu: '',
+    expiration: '',
+    tteok: '',
+}
+
 export default function Lastform({ onSubmit }) {
     const previewRef = useRef(null)
+    const saveTimer = useRef(null)
     const [form, setForm] = useState({
         finishContent: '',
         todoList: '',
@@ -265,6 +275,38 @@ export default function Lastform({ onSubmit }) {
     // 복사 상태
     const [copied, setCopied] = useState(false)
     const [type, setType] = useState(true)
+
+    // load saved
+    useEffect(() => {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY)
+            if (raw) setForm((prev) => ({ ...prev, ...JSON.parse(raw) }))
+        } catch (err) {
+            console.error('저장 불러오기 실패', err)
+        }
+    }, [])
+
+    // auto-save (debounced)
+    useEffect(() => {
+        if (saveTimer.current) clearTimeout(saveTimer.current)
+        saveTimer.current = setTimeout(() => {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(form))
+            } catch (err) {
+                console.error('저장 실패', err)
+            }
+        }, 500)
+        return () => {
+            if (saveTimer.current) clearTimeout(saveTimer.current)
+        }
+    }, [form])
+
+    const clearSaved = () => {
+        localStorage.removeItem(STORAGE_KEY)
+        setForm(initialForm)
+        setSubmitted(null)
+        setCopied(false)
+    }
 
     const handleChange = (e) => {
         const { name, value } = e.target
@@ -411,6 +453,12 @@ export default function Lastform({ onSubmit }) {
                     <PreviewTitle>제출 결과</PreviewTitle>
                     <CopyButton onClick={copySubmitted} disabled={!submitted}>
                         {copied ? '복사됨' : '복사'}
+                    </CopyButton>
+                    <CopyButton
+                        type="button"
+                        onClick={clearSaved}
+                        style={{ marginLeft: 8 }}>
+                        저장 지우기
                     </CopyButton>
                 </div>
 
