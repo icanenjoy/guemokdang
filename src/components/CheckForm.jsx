@@ -305,6 +305,7 @@ const initialForm = {
     patjukTakeout: '',
     sweetPatjukTakeout: '',
     seoulTakeout: '',
+    hodugwajaHall: '',
     hodoogwajaTakeout: '',
     lemonTakeout: '',
     patjukPouch: '',
@@ -409,7 +410,7 @@ export default function CheckForm({ onSubmit }) {
             lines.push(`총 판매 수량 : 매장 ${hall} + 포장 ${takeout}`)
             if (pouchKey) lines.push(`총 판매 수량(파우치) : 포장 ${pouch}`)
             lines.push(
-                `직원 피드백 : ${feedback === '' ? (hall === 0 ? '-' : hall > 1 ? '모두 빈 그릇으로 회수되었습니다.' : '빈 그릇으로 회수되었습니다.') : feedback}\n`
+                `직원 피드백 : ${feedback === '' ? (hall === 0 ? '-' : hall > 1 ? '모두 빈 그릇으로 회수되었습니다.' : '빈 그릇으로 회수되었습니다.') : feedback}\n`,
             )
         }
 
@@ -420,7 +421,7 @@ export default function CheckForm({ onSubmit }) {
             hotHallKey,
             hotTakeoutKey,
             bottleKey,
-            feedbackKey
+            feedbackKey,
         ) => {
             const iceHall = f[iceHallKey] || 0
             const iceTake = f[iceTakeoutKey] || 0
@@ -431,10 +432,12 @@ export default function CheckForm({ onSubmit }) {
 
             lines.push(`•${title}`)
             lines.push(
-                `총 판매 수량 : 아이스 ${iceHall} + 포장 ${iceTake} / 핫 ${hotHall} + 포장 ${hotTake} / 병입 ${bottle}`
+                title === '커피'
+                    ? `총 판매 수량 : 아이스 ${iceHall} + 포장 ${iceTake} / 핫 ${hotHall} + 포장 ${hotTake}`
+                    : `총 판매 수량 : 아이스 ${iceHall} + 포장 ${iceTake} / 핫 ${hotHall} + 포장 ${hotTake} / 병입 ${bottle}`,
             )
             lines.push(
-                `직원 피드백 : ${feedback === '' ? (iceHall + hotHall === 0 ? '-' : iceHall + hotHall > 1 ? '모두 빈 잔으로 회수되었습니다.' : '빈 잔으로 회수되었습니다.') : feedback}\n`
+                `직원 피드백 : ${feedback === '' ? (iceHall + hotHall === 0 ? '-' : iceHall + hotHall > 1 ? '모두 빈 잔으로 회수되었습니다.' : '빈 잔으로 회수되었습니다.') : feedback}\n`,
             )
         }
 
@@ -443,13 +446,7 @@ export default function CheckForm({ onSubmit }) {
         addMenu('서울빙수', 'seoulHall', 'seoulTakeout', null, 'seoulFeedback')
 
         // 레몬 진저 빙수
-        addMenu(
-            '레몬진저빙수',
-            'lemonHall',
-            'lemonTakeout',
-            null,
-            'lemonFeedback'
-        )
+        addMenu('딸기빙수', 'lemonHall', 'lemonTakeout', null, 'lemonFeedback')
 
         // 금옥팥죽
         addMenu(
@@ -457,7 +454,7 @@ export default function CheckForm({ onSubmit }) {
             'patjukHall',
             'patjukTakeout',
             'patjukPouch',
-            'patjukFeedback'
+            'patjukFeedback',
         )
 
         // 단팥죽
@@ -466,7 +463,7 @@ export default function CheckForm({ onSubmit }) {
             'sweetPatjukHall',
             'sweetPatjukTakeout',
             'sweetPatjukPouch',
-            'sweetPatjukFeedback'
+            'sweetPatjukFeedback',
         )
 
         // 단호박죽
@@ -475,7 +472,7 @@ export default function CheckForm({ onSubmit }) {
             'pumkinHall',
             'pumkinTakeout',
             'pumkinPouch',
-            'pumkinFeedback'
+            'pumkinFeedback',
         )
         //오미자
         addDrink(
@@ -485,7 +482,7 @@ export default function CheckForm({ onSubmit }) {
             'omijaHotHall',
             'omijaHotTakeout',
             'omijaBottle',
-            'omijaFeedback'
+            'omijaFeedback',
         )
 
         addDrink(
@@ -495,7 +492,7 @@ export default function CheckForm({ onSubmit }) {
             'ssanghwaHotHall',
             'ssanghwaHotTakeout',
             'ssanghwabottle',
-            'ssanghwaFeedback'
+            'ssanghwaFeedback',
         )
 
         addDrink(
@@ -505,7 +502,7 @@ export default function CheckForm({ onSubmit }) {
             'sujeonggwaHotHall',
             'sujeonggwaHotTakeout',
             'sujeonggwaBottle',
-            'sujeonggwaFeedback'
+            'sujeonggwaFeedback',
         )
 
         addDrink(
@@ -515,17 +512,17 @@ export default function CheckForm({ onSubmit }) {
             'coffeeHotHall',
             'coffeeHotTakeout',
             'coffeeBottle',
-            'coffeeFeedback'
+            'coffeeFeedback',
         )
 
         // 호두과자
         {
             lines.push(`•호두과자 (${f.hodugwajaWeight || 0}배치 제조)`)
             lines.push(
-                `총 판매 수량 : ${(f.hodugwajaHall || 0) + (f.hodugwajaTakeout || 0)} 세트`
+                `총 판매 수량 : ${(f.hodugwajaHall || 0) + (f.hodugwajaTakeout || 0)} 세트`,
             )
             lines.push(
-                `직원 피드백 : ${(f.hodugwajaFeedback || '') === '' ? ((f.hodugwajaHall || 0) + (f.hodugwajaTakeout || 0) === 0 ? '-' : '금일 특이사항 없습니다.') : f.hodugwajaFeedback}\n`
+                `직원 피드백 : ${(f.hodugwajaFeedback || '') === '' ? ((f.hodugwajaHall || 0) + (f.hodugwajaTakeout || 0) === 0 ? '-' : '금일 특이사항 없습니다.') : f.hodugwajaFeedback}\n`,
             )
         }
 
@@ -658,7 +655,7 @@ export default function CheckForm({ onSubmit }) {
         { name: 'sweetPatjukHall', label: '단팥죽' },
         { name: 'seoulHall', label: '서울빙수' },
         { name: 'hodugwajaHall', label: '호두과자' },
-        { name: 'lemonHall', label: '레몬진저빙수' },
+        { name: 'lemonHall', label: '딸기빙수' },
         { name: 'ssanghwaIceHall', label: '쌍화차[ICE]' },
         { name: 'pumkinHall', label: '단호박죽' },
         { name: 'Divider' },
@@ -678,7 +675,7 @@ export default function CheckForm({ onSubmit }) {
         { name: 'sweetPatjukTakeout', label: '단팥죽(포장)' },
         { name: 'seoulTakeout', label: '서울빙수(포장)' },
         { name: 'hodugwajaTakeout', label: '호두과자(포장)' },
-        { name: 'lemonTakeout', label: '레몬진저빙수(포장)' },
+        { name: 'lemonTakeout', label: '딸기빙수(포장)' },
         { name: 'ssanghwaIceTakeout', label: '쌍화차[ICE](포장)' },
 
         { name: 'patjukPouch', label: '금옥팥죽 파우치' },
@@ -714,7 +711,7 @@ export default function CheckForm({ onSubmit }) {
                                                         f.name,
                                                         f.step !== undefined
                                                             ? f.step
-                                                            : 1
+                                                            : 1,
                                                     )
                                                 }>
                                                 ▲
@@ -727,7 +724,7 @@ export default function CheckForm({ onSubmit }) {
                                                         f.name,
                                                         f.step !== undefined
                                                             ? -f.step
-                                                            : -1
+                                                            : -1,
                                                     )
                                                 }>
                                                 ▼
@@ -736,7 +733,7 @@ export default function CheckForm({ onSubmit }) {
                                     </InputGroup>
                                 </Label>
                             </Field>
-                        )
+                        ),
                     )}
                     <Divider />
 
@@ -754,7 +751,7 @@ export default function CheckForm({ onSubmit }) {
                     </Field>
                     <Field key="lemon-feedback">
                         <FeedbackLabel>
-                            <FeedbackTitle>레몬진저빙수 피드백</FeedbackTitle>
+                            <FeedbackTitle>딸기빙수 피드백</FeedbackTitle>
                             <TextInput
                                 name="lemonFeedback"
                                 placeholder="직원 피드백 입력"
