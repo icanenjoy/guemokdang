@@ -1,15 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import styled from 'styled-components'
-
-const vars = {
-    bg: '#f8f9fb',
-    card: '#ffffff',
-    muted: '#6b7280',
-    border: '#e6e9ef',
-    accent: '#1f6feb',
-    radius: '8px',
-    pad: '16px',
-}
+import { vars } from '../style'
+import Preview from '../components/Preview'
 
 const Container = styled.div`
     display: flex;
@@ -108,24 +100,6 @@ const InputGroup = styled.div`
     display: inline-flex;
     align-items: center;
     gap: 8px;
-`
-const Preview = styled.aside`
-    flex: 1;
-    min-width: 300px;
-    max-width: 520px;
-    background: ${vars.bg};
-    border-left: 1px solid ${vars.border};
-    padding: ${vars.pad};
-    border-radius: 6px;
-    box-sizing: border-box;
-
-    /* 모바일에서 결과가 폼 아래로 내려오도록 스타일 조정 */
-    @media (max-width: 900px) {
-        border-left: none;
-        border-top: 1px solid ${vars.border};
-        margin-top: 12px;
-        max-width: 100%;
-    }
 `
 
 const PreviewTitle = styled.div`
@@ -323,7 +297,7 @@ export default function SalesForm({ onSubmit }) {
     const totalsMismatch =
         Math.abs(
             (Number(form.totalSales) || 0) -
-                ((Number(form.cardSales) || 0) + (Number(form.cashSales) || 0))
+                ((Number(form.cardSales) || 0) + (Number(form.cashSales) || 0)),
         ) > 0.001
 
     const cashMismatch =
@@ -331,7 +305,7 @@ export default function SalesForm({ onSubmit }) {
             (Number(form.cashSales) || 0) -
                 ((Number(form.seoulPay) || 0) +
                     (Number(form.bankTransfer) || 0) +
-                    (Number(form.cash) || 0))
+                    (Number(form.cash) || 0)),
         ) > 0.001
 
     const discountsSum =
@@ -391,19 +365,19 @@ export default function SalesForm({ onSubmit }) {
         // 금액 문자열 길이 계산 (전체 항목 고려해서 정렬 통일)
         const allAmountCandidates = [
             ...mainRows.map(([, v]) =>
-                v === null ? '' : `${v.toLocaleString()}원`
+                v === null ? '' : `${v.toLocaleString()}원`,
             ),
             ...discountRows.map(([, v]) => `${v.toLocaleString()}원`),
             `${(Number(f.naver) || 0).toLocaleString()}원`,
         ]
         const maxAmtLen = allAmountCandidates.reduce(
             (mx, s) => Math.max(mx, (s || '').length),
-            0
+            0,
         )
         const maxLabelLen = Math.max(
             ...mainRows.map(([lab]) => lab.length),
             ...discountRows.map(([lab]) => lab.length),
-            naverRow[0].length
+            naverRow[0].length,
         )
 
         // 레이블과 금액 사이에 들어갈 공백 문자열 (사용자가 조절)
@@ -413,7 +387,7 @@ export default function SalesForm({ onSubmit }) {
         mainRows.forEach(([label, value]) => {
             if (value === null) {
                 lines.push(
-                    `${``.padEnd(maxLabelLen - 3)}${label.padStart(maxAmtLen)}`
+                    `${``.padEnd(maxLabelLen - 3)}${label.padStart(maxAmtLen)}`,
                 )
                 return
             }
@@ -421,19 +395,19 @@ export default function SalesForm({ onSubmit }) {
             const amt = `${Number(value).toLocaleString()}원`
             if (label === '서울페이:') {
                 lines.push(
-                    `             (${label.padEnd(maxLabelLen - 6)}${amt.padStart(maxAmtLen)})`
+                    `             (${label.padEnd(maxLabelLen - 6)}${amt.padStart(maxAmtLen)})`,
                 )
                 return
             }
             lines.push(
-                `${label.padEnd(maxLabelLen)}${gap}${amt.padStart(maxAmtLen)}`
+                `${label.padEnd(maxLabelLen)}${gap}${amt.padStart(maxAmtLen)}`,
             )
         })
 
         // 할인 항목: 모든 할인 값이 0이면 '할인: 0원'으로 하나만 표시
         const discountsSum = discountRows.reduce(
             (s, [, v]) => s + (Number(v) || 0),
-            0
+            0,
         )
         if (discountsSum === 0) {
             const left = '할인:'.padEnd(maxLabelLen + 4)
@@ -444,7 +418,7 @@ export default function SalesForm({ onSubmit }) {
                 if (Number(value) === 0) return
                 const amt = `${Number(value).toLocaleString()}원`
                 lines.push(
-                    `${label.padEnd(maxLabelLen)}${gap}${amt.padStart(maxAmtLen)}`
+                    `${label.padEnd(maxLabelLen)}${gap}${amt.padStart(maxAmtLen)}`,
                 )
             })
         }
@@ -452,7 +426,7 @@ export default function SalesForm({ onSubmit }) {
         // 네이버예약 (항상 마지막)
         const naverAmt = `${Number(naverRow[1]).toLocaleString()}원`
         lines.push(
-            `${naverRow[0].padEnd(maxLabelLen - 2)}${gap}${naverAmt.padStart(maxAmtLen)}`
+            `${naverRow[0].padEnd(maxLabelLen - 2)}${gap}${naverAmt.padStart(maxAmtLen)}`,
         )
 
         return lines.join('\n')
@@ -591,64 +565,55 @@ export default function SalesForm({ onSubmit }) {
                                     </InputGroup>
                                 </Label>
                             </Field>
-                        )
+                        ),
                     )}
                     <Divider />
                 </Fields>
             </FormWrapper>
 
-            <Preview ref={previewRef}>
-                <div
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 8,
-                        marginBottom: 8,
-                    }}>
-                    <PreviewTitle>제출 결과</PreviewTitle>
-                    <CopyButton onClick={copySubmitted} disabled={!submitted}>
-                        {copied ? '복사됨' : '복사'}
-                    </CopyButton>
-                    <CopyButton
-                        type="button"
-                        onClick={clearSaved}
-                        style={{ marginLeft: 8 }}>
-                        저장 지우기
-                    </CopyButton>
-
-                    {/* 레이블-금액 공백 조절 UI */}
-                    <div
-                        style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: 8,
-                            marginLeft: 8,
-                        }}>
-                        <GapButton type="button" onClick={decreaseGap}>
-                            -
-                        </GapButton>
-                        <GapDisplay>
-                            {' '
-                                .repeat(Math.min(5, gapSpaces))
-                                .replace(/ /g, '·')}
-                        </GapDisplay>
-                        <GapButton type="button" onClick={increaseGap}>
-                            +
-                        </GapButton>
-                    </div>
-                </div>
-
-                {submitted ? (
-                    <>
-                        <Pre>{submitted}</Pre>
-                    </>
-                ) : (
-                    <SubmittedTime style={{ color: vars.muted }}>
-                        아직 제출된 데이터가 없습니다.
-                    </SubmittedTime>
-                )}
-            </Preview>
-
+            <div
+                style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    marginLeft: 8,
+                }}>
+                <GapButton type="button" onClick={decreaseGap}>
+                    -
+                </GapButton>
+                <GapDisplay>
+                    {' '.repeat(Math.min(5, gapSpaces)).replace(/ /g, '·')}
+                </GapDisplay>
+                <GapButton type="button" onClick={increaseGap}>
+                    +
+                </GapButton>
+            </div>
+            <Preview
+                ref={previewRef}
+                submitted={submitted}
+                setCopied={setCopied}
+                copied={copied}
+                setSubmitted={setSubmitted}
+                initialForm={initialForm}
+                setForm={setForm}
+                storageKey={STORAGE_KEY}
+            />
+            {totalsMismatch && (
+                <Warning>
+                    총매출과 카드매출+현금매출 합계가 일치하지 않습니다.
+                </Warning>
+            )}
+            {cashMismatch && (
+                <Warning>
+                    현금매출과 서울페이+계좌이체+현금입금 합계가 일치하지
+                    않습니다.
+                </Warning>
+            )}
+            {discountsSum > 0 && (
+                <Discount>
+                    할인 금액이 총 {discountsSum.toLocaleString()}원입니다.
+                </Discount>
+            )}
             <FixedSubmit type="button" onClick={handleSubmit}>
                 제출
             </FixedSubmit>

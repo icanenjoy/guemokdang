@@ -1,15 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import styled from 'styled-components'
-
-const vars = {
-    bg: '#f8f9fb',
-    card: '#ffffff',
-    muted: '#6b7280',
-    border: '#e6e9ef',
-    accent: '#1f6feb',
-    radius: '8px',
-    pad: '16px',
-}
+import { vars } from '../style'
+import Preview from '../components/preview'
 
 const Container = styled.div`
     display: flex;
@@ -92,25 +84,6 @@ const Button = styled.div`
 
     &:active {
         transform: translateY(1px);
-    }
-`
-
-const Preview = styled.aside`
-    flex: 1;
-    min-width: 300px;
-    max-width: 520px;
-    background: ${vars.bg};
-    border-left: 1px solid ${vars.border};
-    padding: ${vars.pad};
-    border-radius: 6px;
-    box-sizing: border-box;
-
-    /* 모바일에서 결과가 폼 아래로 내려오도록 스타일 조정 */
-    @media (max-width: 900px) {
-        border-left: none;
-        border-top: 1px solid ${vars.border};
-        margin-top: 12px;
-        max-width: 100%;
     }
 `
 
@@ -336,36 +309,16 @@ export default function InternetForm({ onSubmit }) {
                 </Fields>
             </FormWrapper>
 
-            <Preview ref={previewRef}>
-                <div
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 8,
-                        marginBottom: 8,
-                    }}>
-                    <PreviewTitle>제출 결과</PreviewTitle>
-                    <CopyButton onClick={copySubmitted} disabled={!submitted}>
-                        {copied ? '복사됨' : '복사'}
-                    </CopyButton>
-                    <CopyButton
-                        type="button"
-                        onClick={clearSaved}
-                        style={{ marginLeft: 8 }}>
-                        저장 지우기
-                    </CopyButton>
-                </div>
-
-                {submitted ? (
-                    <>
-                        <Pre>{submitted}</Pre>
-                    </>
-                ) : (
-                    <SubmittedTime style={{ color: vars.muted }}>
-                        아직 제출된 데이터가 없습니다.
-                    </SubmittedTime>
-                )}
-            </Preview>
+            <Preview
+                ref={previewRef}
+                submitted={submitted}
+                setCopied={setCopied}
+                copied={copied}
+                setSubmitted={setSubmitted}
+                initialForm={initialForm}
+                setForm={setForm}
+                storageKey={STORAGE_KEY}
+            />
 
             <FixedSubmit type="button" onClick={handleSubmit}>
                 제출

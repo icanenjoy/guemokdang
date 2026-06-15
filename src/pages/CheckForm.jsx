@@ -1,15 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import styled from 'styled-components'
-
-const vars = {
-    bg: '#f8f9fb',
-    card: '#ffffff',
-    muted: '#6b7280',
-    border: '#e6e9ef',
-    accent: '#1f6feb',
-    radius: '8px',
-    pad: '16px',
-}
+import { vars } from '../style'
+import Preview from '../components/preview'
 
 const Container = styled.div`
     display: flex;
@@ -149,66 +141,29 @@ const StepButton = styled.button`
     }
 `
 
-const Preview = styled.aside`
-    flex: 1;
-    min-width: 300px;
-    max-width: 520px;
-    background: ${vars.bg};
-    border-left: 1px solid ${vars.border};
-    padding: ${vars.pad};
-    border-radius: 6px;
-    box-sizing: border-box;
-
-    /* 모바일에서 결과가 폼 아래로 내려오도록 스타일 조정 */
-    @media (max-width: 900px) {
-        border-left: none;
-        border-top: 1px solid ${vars.border};
-        margin-top: 12px;
-        max-width: 100%;
-    }
+const Divider = styled.div`
+    grid-column: 1 / -1;
+    height: 1px;
+    background: ${vars.border};
+    border-radius: 2px;
+    margin: 8px 0;
 `
-
-const PreviewTitle = styled.div`
-    font-weight: 700;
-    margin-bottom: 8px;
-`
-
-const SubmittedTime = styled.div`
-    font-size: 12px;
-    color: ${vars.muted};
-    margin-bottom: 12px;
-`
-
-const Pre = styled.pre`
-    background: ${vars.card};
-    padding: 12px;
-    border-radius: 6px;
+const TextInput = styled.input.attrs({ type: 'text' })`
+    width: 100%;
+    height: 40px;
+    padding: 8px 10px;
     border: 1px solid ${vars.border};
-    font-family:
-        ui-monospace, SFMono-Regular, Menlo, Monaco, 'Noto Sans Mono', monospace;
-    white-space: pre-wrap;
-    word-break: break-word;
-    font-size: 13px;
+    border-radius: 6px;
+    font-size: 16px;
     color: #111827;
-    margin: 0;
-`
-
-// 추가: 제출 내용 복사 버튼 스타일
-const CopyButton = styled.button`
-    margin-left: 8px;
-    padding: 6px 10px;
-    font-size: 13px;
-    background: transparent;
-    border: 1px solid ${vars.border};
-    color: ${vars.muted};
-    border-radius: 6px;
-    cursor: pointer;
-    &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
+    background: ${vars.card};
+    outline: none;
+    box-sizing: border-box;
+    &:focus {
+        border-color: rgba(31, 111, 235, 0.18);
+        box-shadow: 0 6px 18px rgba(31, 111, 235, 0.06);
     }
 `
-
 const FixedSubmit = styled.button`
     position: fixed;
     left: 50%;
@@ -250,30 +205,6 @@ const FixedSubmit = styled.button`
         border-radius: 12px;
     }
 `
-const Divider = styled.div`
-    grid-column: 1 / -1;
-    height: 1px;
-    background: ${vars.border};
-    border-radius: 2px;
-    margin: 8px 0;
-`
-const TextInput = styled.input.attrs({ type: 'text' })`
-    width: 100%;
-    height: 40px;
-    padding: 8px 10px;
-    border: 1px solid ${vars.border};
-    border-radius: 6px;
-    font-size: 16px;
-    color: #111827;
-    background: ${vars.card};
-    outline: none;
-    box-sizing: border-box;
-    &:focus {
-        border-color: rgba(31, 111, 235, 0.18);
-        box-shadow: 0 6px 18px rgba(31, 111, 235, 0.06);
-    }
-`
-
 const STORAGE_KEY = 'checkForm:v1'
 
 const initialForm = {
@@ -355,12 +286,6 @@ export default function CheckForm({ onSubmit }) {
             if (saveTimer.current) clearTimeout(saveTimer.current)
         }
     }, [form])
-    const clearSaved = () => {
-        localStorage.removeItem(STORAGE_KEY)
-        setForm(initialForm)
-        setCopied(false)
-        setSubmitted('')
-    }
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target
@@ -510,7 +435,6 @@ export default function CheckForm({ onSubmit }) {
             'coffeeIceTakeout',
             'coffeeHotHall',
             'coffeeHotTakeout',
-            'coffeeBottle',
             'coffeeFeedback',
         )
 
@@ -554,27 +478,6 @@ export default function CheckForm({ onSubmit }) {
 
         if (onSubmit && typeof onSubmit === 'function') onSubmit(payload)
         else console.log('폼 제출:', payload)
-    }
-
-    const copySubmitted = async () => {
-        if (!submitted) return
-        try {
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                await navigator.clipboard.writeText(submitted)
-            } else {
-                // fallback
-                const ta = document.createElement('textarea')
-                ta.value = submitted
-                document.body.appendChild(ta)
-                ta.select()
-                document.execCommand('copy')
-                document.body.removeChild(ta)
-            }
-            setCopied(true)
-            setTimeout(() => setCopied(false), 2000)
-        } catch (err) {
-            console.error('복사 실패', err)
-        }
     }
 
     // helper: step으로 조절 (step은 number 또는 string)
@@ -654,7 +557,7 @@ export default function CheckForm({ onSubmit }) {
         { name: 'sweetPatjukHall', label: '단팥죽' },
         { name: 'seoulHall', label: '서울빙수' },
         { name: 'hodugwajaHall', label: '호두과자' },
-        { name: 'lemonHall', label: '딸기빙수' },
+        { name: 'lemonHall', label: '레몬진저빙수' },
         { name: 'ssanghwaIceHall', label: '쌍화차[ICE]' },
         { name: 'pumkinHall', label: '단호박죽' },
         { name: 'Divider' },
@@ -674,7 +577,7 @@ export default function CheckForm({ onSubmit }) {
         { name: 'sweetPatjukTakeout', label: '단팥죽(포장)' },
         { name: 'seoulTakeout', label: '서울빙수(포장)' },
         { name: 'hodugwajaTakeout', label: '호두과자(포장)' },
-        { name: 'lemonTakeout', label: '딸기빙수(포장)' },
+        { name: 'lemonTakeout', label: '레몬진저빙수(포장)' },
         { name: 'ssanghwaIceTakeout', label: '쌍화차[ICE](포장)' },
 
         { name: 'patjukPouch', label: '금옥팥죽 파우치' },
@@ -750,7 +653,7 @@ export default function CheckForm({ onSubmit }) {
                     </Field>
                     <Field key="lemon-feedback">
                         <FeedbackLabel>
-                            <FeedbackTitle>딸기빙수 피드백</FeedbackTitle>
+                            <FeedbackTitle>레몬진저빙수 피드백</FeedbackTitle>
                             <TextInput
                                 name="lemonFeedback"
                                 placeholder="직원 피드백 입력"
@@ -861,36 +764,16 @@ export default function CheckForm({ onSubmit }) {
                 </Fields>
             </FormWrapper>
 
-            <Preview ref={previewRef}>
-                <div
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 8,
-                        marginBottom: 8,
-                    }}>
-                    <PreviewTitle>제출 결과</PreviewTitle>
-                    <CopyButton onClick={copySubmitted} disabled={!submitted}>
-                        {copied ? '복사됨' : '복사'}
-                    </CopyButton>
-                    <CopyButton
-                        type="button"
-                        onClick={clearSaved}
-                        style={{ marginLeft: 8 }}>
-                        저장 지우기
-                    </CopyButton>
-                </div>
-
-                {submitted ? (
-                    <>
-                        <Pre>{submitted}</Pre>
-                    </>
-                ) : (
-                    <SubmittedTime style={{ color: vars.muted }}>
-                        아직 제출된 데이터가 없습니다.
-                    </SubmittedTime>
-                )}
-            </Preview>
+            <Preview
+                ref={previewRef}
+                submitted={submitted}
+                setCopied={setCopied}
+                copied={copied}
+                setSubmitted={setSubmitted}
+                initialForm={initialForm}
+                setForm={setForm}
+                storageKey={STORAGE_KEY}
+            />
 
             <FixedSubmit type="button" onClick={handleSubmit}>
                 제출

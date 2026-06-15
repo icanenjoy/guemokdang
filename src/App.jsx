@@ -1,27 +1,16 @@
 import React, { useState } from 'react'
 import styled from 'styled-components'
-import CheckForm from './components/CheckForm'
-import SalesForm from './components/SalesForm'
-import InternetForm from './components/InternetForm'
-import LastForm from './components/LastForm'
-import ServiceForm from './components/ServiceForm'
-
-const vars = {
-    bg: '#f3f6fb',
-    card: '#ffffff',
-    muted: '#6b7280',
-    accent: '#1f6feb',
-    radius: '12px',
-    pad: '20px',
-    gap: '24px',
-    maxWidth: '1100px',
-}
+import CheckForm from './pages/CheckForm'
+import SalesForm from './pages/SalesForm'
+import InternetForm from './pages/InternetForm'
+import LastForm from './pages/LastForm'
+import ServiceForm from './pages/ServiceForm'
+import PorridgeForm from './pages/PorridgeForm'
+import { vars } from './style'
 
 const AppContainer = styled.div`
     min-height: 100vh;
     background: ${vars.bg};
-    display: flex;
-    justify-content: center;
     padding: 40px 20px;
     box-sizing: border-box;
     font-family:
@@ -31,34 +20,14 @@ const AppContainer = styled.div`
 
 const Card = styled.div`
     width: 100%;
-    max-width: ${vars.maxWidth};
     background: ${vars.card};
-    border-radius: ${vars.radius};
-    padding: ${vars.pad};
-    box-shadow: 0 8px 30px rgba(17, 24, 39, 0.06);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 15px 30px 10px rgba(17, 24, 39, 0.06);
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    gap: ${vars.gap};
-`
-
-const Header = styled.header`
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-`
-
-const TitleGroup = styled.div`
-    display: flex;
-    flex-direction: column;
-`
-
-const Title = styled.h1`
-    margin: 0;
-    font-size: 20px;
-    color: #0f172a;
-    font-weight: 700;
+    gap: 10px;
 `
 
 const Subtitle = styled.div`
@@ -67,7 +36,8 @@ const Subtitle = styled.div`
 `
 
 const TabGroup = styled.div`
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     align-items: center;
     background: transparent;
     overflow: hidden;
@@ -80,73 +50,88 @@ const TabButton = styled.button`
     border: none;
     background: ${(p) => (p.active ? vars.accent : 'transparent')};
     color: ${(p) => (p.active ? '#fff' : vars.muted)};
-    padding: 8px 14px;
+    padding: 15px 0px;
     font-size: 14px;
     cursor: pointer;
     font-weight: 600;
     transition:
-        background 0.12s ease,
-        color 0.12s ease;
+        background 0.2s ease,
+        color 0.2s ease;
 `
 
-const Content = styled.main`
-    display: block;
+const Header = styled.header`
+    margin-bottom: 20px;
+`
+
+const Title = styled.h1`
+    margin-bottom: 3px;
+    font-size: 20px;
+    color: ${vars.main};
+    font-weight: 700;
 `
 
 export default function App() {
-    const [active, setActive] = useState('feedback') // 'feedback' | 'sales'
+    const [active, setActive] = useState('porridgeStock')
 
     return (
         <AppContainer>
             <Card>
-                <TabGroup role="tablist" aria-label="view tabs">
+                <TabGroup>
+                    <TabButton
+                        type="button"
+                        active={active === 'porridgeStock'}
+                        onClick={() => setActive('porridgeStock')}>
+                        죽 재고
+                    </TabButton>
                     <TabButton
                         type="button"
                         active={active === 'feedback'}
-                        onClick={() => setActive('feedback')}
-                        aria-pressed={active === 'feedback'}>
+                        onClick={() => setActive('feedback')}>
                         메뉴 피드백
                     </TabButton>
                     <TabButton
                         type="button"
                         active={active === 'sales'}
-                        onClick={() => setActive('sales')}
-                        aria-pressed={active === 'sales'}>
+                        onClick={() => setActive('sales')}>
                         매출
                     </TabButton>
                     <TabButton
                         type="button"
                         active={active === 'internet'}
-                        onClick={() => setActive('internet')}
-                        aria-pressed={active === 'internet'}>
+                        onClick={() => setActive('internet')}>
                         인터넷 발주
                     </TabButton>
                     <TabButton
                         type="button"
                         active={active === 'last'}
-                        onClick={() => setActive('last')}
-                        aria-pressed={active === 'last'}>
+                        onClick={() => setActive('last')}>
                         마감보고
                     </TabButton>
                     <TabButton
                         type="button"
                         active={active === 'service'}
-                        onClick={() => setActive('service')}
-                        aria-pressed={active === 'service'}>
+                        onClick={() => setActive('service')}>
                         양갱 서비스
                     </TabButton>
                 </TabGroup>
 
-                <Content>
+                <div>
+                    {active === 'porridgeStock' && (
+                        <>
+                            <Header>
+                                <Title>죽 재고</Title>
+                                <Subtitle>죽 재고를 기록하세요</Subtitle>
+                            </Header>
+                            <PorridgeForm onSubmit={() => {}} />
+                        </>
+                    )}
                     {active === 'feedback' && (
                         <>
                             <Header>
-                                <TitleGroup>
-                                    <Title>메뉴 피드백</Title>
-                                    <Subtitle>
-                                        일별 판매/피드백을 기록하세요
-                                    </Subtitle>
-                                </TitleGroup>
+                                <Title>메뉴 피드백</Title>
+                                <Subtitle>
+                                    일별 판매/피드백을 기록하세요
+                                </Subtitle>
                             </Header>
                             <CheckForm onSubmit={() => {}} />
                         </>
@@ -154,12 +139,10 @@ export default function App() {
                     {active === 'sales' && (
                         <>
                             <Header>
-                                <TitleGroup>
-                                    <Title>매출 기록</Title>
-                                    <Subtitle>
-                                        매출을 입력하세요 기록하세요
-                                    </Subtitle>
-                                </TitleGroup>
+                                <Title>매출 기록</Title>
+                                <Subtitle>
+                                    매출을 입력하세요 기록하세요
+                                </Subtitle>
                             </Header>
                             <SalesForm onSubmit={() => {}} />
                         </>
@@ -167,12 +150,8 @@ export default function App() {
                     {active === 'internet' && (
                         <>
                             <Header>
-                                <TitleGroup>
-                                    <Title>인터넷 발주</Title>
-                                    <Subtitle>
-                                        인터넷 발주를 기록하세요
-                                    </Subtitle>
-                                </TitleGroup>
+                                <Title>인터넷 발주</Title>
+                                <Subtitle>인터넷 발주를 기록하세요</Subtitle>
                             </Header>
                             <InternetForm onSubmit={() => {}} />
                         </>
@@ -180,12 +159,8 @@ export default function App() {
                     {active === 'last' && (
                         <>
                             <Header>
-                                <TitleGroup>
-                                    <Title>마감보고</Title>
-                                    <Subtitle>
-                                        마감 보고서를 작성하세요
-                                    </Subtitle>
-                                </TitleGroup>
+                                <Title>마감보고</Title>
+                                <Subtitle>마감 보고서를 작성하세요</Subtitle>
                             </Header>
                             <LastForm onSubmit={() => {}} />
                         </>
@@ -193,17 +168,13 @@ export default function App() {
                     {active === 'service' && (
                         <>
                             <Header>
-                                <TitleGroup>
-                                    <Title>양갱 서비스</Title>
-                                    <Subtitle>
-                                        양갱 서비스를 기록하세요
-                                    </Subtitle>
-                                </TitleGroup>
+                                <Title>양갱 서비스</Title>
+                                <Subtitle>양갱 서비스를 기록하세요</Subtitle>
                             </Header>
                             <ServiceForm onSubmit={() => {}} />
                         </>
                     )}
-                </Content>
+                </div>
             </Card>
         </AppContainer>
     )

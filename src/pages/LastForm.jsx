@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import styled from 'styled-components'
 
 const vars = {
@@ -36,7 +36,7 @@ const FormWrapper = styled.form`
 
 const Fields = styled.div`
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    // grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 10px;
     margin-bottom: 12px;
 `
@@ -77,8 +77,8 @@ const Stepper = styled.div`
 
 const Button = styled.div`
     border: none;
-    background: ${(props) => (props.$action ? vars.accent : vars.bg)};
-    padding: 8px 20px;
+    background: ${vars.accent};
+    padding: 8px 16px;
     width: 50%;
     height: 50%;
     display: flex;
@@ -87,8 +87,7 @@ const Button = styled.div`
     cursor: pointer;
     font-size: 12px;
     line-height: 1;
-    white-space: nowrap;
-    color: ${(props) => (props.$action ? vars.card : vars.muted)};
+    color: #ffffffff;
     border-radius: 100px;
 
     &:active {
@@ -165,7 +164,7 @@ const TextInput = styled.input.attrs({ type: 'text' })`
     padding: 8px 10px;
     border: 1px solid ${vars.border};
     border-radius: 6px;
-    font-size: 14px;
+    font-size: 16px;
     color: #111827;
     background: ${vars.card};
     outline: none;
@@ -240,7 +239,7 @@ const Textarea = styled.textarea`
     border: 1px solid ${vars.border};
     border-radius: 6px;
     resize: vertical;
-    font-size: 14px;
+    font-size: 16px;
     color: #111827;
     background: ${vars.card};
     outline: none;
@@ -250,46 +249,26 @@ const Textarea = styled.textarea`
         box-shadow: 0 6px 18px rgba(31, 111, 235, 0.06);
     }
 `
-const LABEL_MAP = {
-    redBean: '팥',
-    fineBean: '고운앙금',
-    wholeBean: '통팥',
-    chestnut: '밤',
-    walnut: '호두',
-    nutMix: '견과',
-    redDate: '대추',
-    ssanghwa: '쌍화',
-    raspberry: '라즈베리',
-    milkTea: '밀크티',
-    driedPersimmon: '상주곶감',
-    jeju: '제주녹차',
-    matcha: '보성말차',
-    whiteBean: '백앙금',
-    blackSesame: '흑임자',
-    sweetPotato: '고구마',
-    pumpkin: '단호박',
+
+const STORAGE_KEY = 'lastForm:v1'
+const initialForm = {
+    finishContent: '',
+    todoList: '',
+    menu: '',
+    expiration: '',
+    tteok: '',
 }
 
-export default function ServiceForm({ onSubmit }) {
+export default function Lastform({ onSubmit }) {
     const previewRef = useRef(null)
+    const saveTimer = useRef(null)
     const [form, setForm] = useState({
-        redBean: false, // 팥
-        fineBean: false, // 고운앙금
-        wholeBean: false, // 통팥
-        chestnut: false, // 밤
-        walnut: false, // 호두
-        nutMix: false, // 견과
-        redDate: false, // 대추
-        ssanghwa: false, // 쌍화
-        raspberry: false, // 라즈베리
-        milkTea: false, // 밀크티
-        driedPersimmon: false, // 상주곶감
-        jeju: false, // 제주녹차
-        matcha: false, // 보성말차
-        whiteBean: false, // 백앙금
-        blackSesame: false, // 흑임자
-        sweetPotato: false, // 고구마
-        pumpkin: false, // 단호박
+        finishContent: '',
+        todoList: '',
+        menu: '',
+        expiration: '',
+        tteok: '',
+        addContent: '',
     })
 
     const [submitted, setSubmitted] = useState(null)
@@ -298,29 +277,68 @@ export default function ServiceForm({ onSubmit }) {
     const [copied, setCopied] = useState(false)
     const [type, setType] = useState(true)
 
-    const handleChange = (name) => {
-        setForm((prev) => ({ ...prev, [name]: !prev[name] }))
+    // load saved
+    useEffect(() => {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY)
+            if (raw) setForm((prev) => ({ ...prev, ...JSON.parse(raw) }))
+        } catch (err) {
+            console.error('저장 불러오기 실패', err)
+        }
+    }, [])
+
+    // auto-save (debounced)
+    useEffect(() => {
+        if (saveTimer.current) clearTimeout(saveTimer.current)
+        saveTimer.current = setTimeout(() => {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(form))
+            } catch (err) {
+                console.error('저장 실패', err)
+            }
+        }, 500)
+        return () => {
+            if (saveTimer.current) clearTimeout(saveTimer.current)
+        }
+    }, [form])
+
+    const clearSaved = () => {
+        localStorage.removeItem(STORAGE_KEY)
+        setForm(initialForm)
+        setSubmitted(null)
+        setCopied(false)
+    }
+
+    const handleChange = (e) => {
+        const { name, value } = e.target
+
+        setForm((prev) => ({ ...prev, [name]: value }))
     }
 
     const formatReport = (titleDate, f) => {
-        const selected = Object.entries(f)
-            .filter(([_, value]) => value === true)
-            .map(([k]) => LABEL_MAP[k])
-
         const lines = []
-        lines.push(
-            titleDate +
-                ' 소비기한 임박 양갱으로 시식 서비스 진행 중입니다' +
-                `(${selected.filter(Boolean).join('/')})`
-        )
+        lines.push('[마감 보고]')
+        lines.push(`${f.finishContent}\n`)
+        lines.push(`✔️ ${titleDate} 할 일`)
+        lines.push(`${f.todoList}\n`)
+        lines.push(`고생하셨습니다👏🏻\n`)
+        lines.push('☑️메뉴폐기')
+        lines.push(f.menu || '폐기 항목 없음')
+        lines.push('\n☑️유통기한으로 인한 폐기')
+        lines.push(f.expiration || '폐기 항목 없음')
+        lines.push('\n☑️떡 폐기')
+        lines.push(f.tteok || '폐기 항목 없음')
+        lines.push(`\n${f.addContent}\n`)
         return lines.join('\n')
     }
 
     const handleSubmit = (e) => {
         e.preventDefault()
         const payload = { ...form }
-        const today = new Date()
-        const titleDate = `${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')} 서초점 ${String(today.getHours()).padStart(2, '0')}:${String(today.getMinutes()).padStart(2, '0')}`
+        const tomorrow = new Date()
+        tomorrow.setDate(tomorrow.getDate() + 1)
+        const weekdayNames = ['일', '월', '화', '수', '목', '금', '토']
+        const titleDate = `${String(tomorrow.getMonth() + 1).padStart(2, '0')}/${String(tomorrow.getDate()).padStart(2, '0')}(${weekdayNames[tomorrow.getDay()]})`
         const report = formatReport(titleDate, payload)
 
         setSubmitted(report)
@@ -366,118 +384,88 @@ export default function ServiceForm({ onSubmit }) {
         <Container>
             <FormWrapper onSubmit={handleSubmit} noValidate>
                 <Fields>
-                    <Button
-                        onClick={() => handleChange('redBean')}
-                        $action={form.redBean}>
-                        팥
-                    </Button>
-                    <Button
-                        $action={form.fineBean}
-                        onClick={() => handleChange('fineBean')}>
-                        고운앙금
-                    </Button>
-                    <Button
-                        $action={form.wholeBean}
-                        onClick={() => handleChange('wholeBean')}>
-                        통팥
-                    </Button>
-                    <Button
-                        $action={form.chestnut}
-                        onClick={() => handleChange('chestnut')}>
-                        밤
-                    </Button>
-                    <Button
-                        $action={form.walnut}
-                        onClick={() => handleChange('walnut')}>
-                        호두
-                    </Button>
-                    <Button
-                        $action={form.nutMix}
-                        onClick={() => handleChange('nutMix')}>
-                        견과
-                    </Button>
-                    <Button
-                        $action={form.redDate}
-                        onClick={() => handleChange('redDate')}>
-                        대추
-                    </Button>
-                    <Button
-                        $action={form.ssanghwa}
-                        onClick={() => handleChange('ssanghwa')}>
-                        쌍화
-                    </Button>
-                    <Button
-                        $action={form.raspberry}
-                        onClick={() => handleChange('raspberry')}>
-                        라즈베리
-                    </Button>
-                    <Button
-                        $action={form.milkTea}
-                        onClick={() => handleChange('milkTea')}>
-                        밀크티
-                    </Button>
-                    <Button
-                        $action={form.driedPersimmon}
-                        onClick={() => handleChange('driedPersimmon')}>
-                        상주곶감
-                    </Button>
-                    <Button
-                        $action={form.jeju}
-                        onClick={() => handleChange('jeju')}>
-                        제주녹차
-                    </Button>
-                    <Button
-                        $action={form.matcha}
-                        onClick={() => handleChange('matcha')}>
-                        보성말차
-                    </Button>
-                    <Button
-                        $action={form.whiteBean}
-                        onClick={() => handleChange('whiteBean')}>
-                        백앙금
-                    </Button>
-                    <Button
-                        $action={form.blackSesame}
-                        onClick={() => handleChange('blackSesame')}>
-                        흑임자
-                    </Button>
-                    <Button
-                        $action={form.sweetPotato}
-                        onClick={() => handleChange('sweetPotato')}>
-                        고구마
-                    </Button>
-                    <Button
-                        $action={form.pumpkin}
-                        onClick={() => handleChange('pumpkin')}>
-                        단호박
-                    </Button>
+                    <Field key="finishContent">
+                        <Label>
+                            <Title>마감 보고</Title>
+                            <FeedbackLabel>
+                                <Textarea
+                                    name="finishContent"
+                                    value={form.finishContent}
+                                    onChange={handleChange}
+                                />
+                            </FeedbackLabel>
+                        </Label>
+                    </Field>
+                    <Field key="finishContent">
+                        <Label>
+                            <Title>할 일</Title>
+                            <FeedbackLabel>
+                                <Textarea
+                                    name="todoList"
+                                    value={form.todoList}
+                                    onChange={handleChange}
+                                />
+                            </FeedbackLabel>
+                        </Label>
+                    </Field>
+                    <Field key="menu">
+                        <FeedbackLabel>
+                            <Title>메뉴폐기</Title>
+                            <TextInput
+                                name="menu"
+                                placeholder="폐기 항목 없음"
+                                value={form.menu}
+                                onChange={handleChange}
+                            />
+                        </FeedbackLabel>
+                    </Field>
+                    <Field key="expiration">
+                        <FeedbackLabel>
+                            <Title>유통기한으로 인한 폐기</Title>
+                            <TextInput
+                                name="expiration"
+                                placeholder="폐기 항목 없음"
+                                value={form.expiration}
+                                onChange={handleChange}
+                            />
+                        </FeedbackLabel>
+                    </Field>
+                    <Field key="tteok">
+                        <FeedbackLabel>
+                            <Title>떡폐기</Title>
+                            <TextInput
+                                name="tteok"
+                                placeholder="폐기 항목 없음"
+                                value={form.tteok}
+                                onChange={handleChange}
+                            />
+                        </FeedbackLabel>
+                    </Field>
+                    <Field key="addContent">
+                        <Label>
+                            <Title>기타 보고</Title>
+                            <FeedbackLabel>
+                                <Textarea
+                                    name="addContent"
+                                    value={form.addContent}
+                                    onChange={handleChange}
+                                />
+                            </FeedbackLabel>
+                        </Label>
+                    </Field>
                 </Fields>
             </FormWrapper>
 
-            <Preview ref={previewRef}>
-                <div
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 8,
-                        marginBottom: 8,
-                    }}>
-                    <PreviewTitle>제출 결과</PreviewTitle>
-                    <CopyButton onClick={copySubmitted} disabled={!submitted}>
-                        {copied ? '복사됨' : '복사'}
-                    </CopyButton>
-                </div>
-
-                {submitted ? (
-                    <>
-                        <Pre>{submitted}</Pre>
-                    </>
-                ) : (
-                    <SubmittedTime style={{ color: vars.muted }}>
-                        아직 제출된 데이터가 없습니다.
-                    </SubmittedTime>
-                )}
-            </Preview>
+            <Preview
+                ref={previewRef}
+                submitted={submitted}
+                setCopied={setCopied}
+                copied={copied}
+                setSubmitted={setSubmitted}
+                initialForm={initialForm}
+                setForm={setForm}
+                storageKey={STORAGE_KEY}
+            />
 
             <FixedSubmit type="button" onClick={handleSubmit}>
                 제출
