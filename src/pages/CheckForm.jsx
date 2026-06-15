@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import styled from 'styled-components'
 import { vars } from '../style'
-import Preview from '../components/preview'
+import Preview from '../components/Preview'
 
 const Container = styled.div`
     display: flex;
