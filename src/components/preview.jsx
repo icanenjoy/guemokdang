@@ -59,7 +59,7 @@ const CopyButton = styled.button`
     }
 `
 
-export default function PreviewComponent({
+export default function Preview({
     previewRef,
     submitted,
     storageKey,

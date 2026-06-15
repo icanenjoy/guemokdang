@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import styled from 'styled-components'
+import Preview from '../components/Preview'
 
 const vars = {
     bg: '#f8f9fb',
@@ -96,25 +97,6 @@ const Button = styled.div`
 
     @media (max-width: 600px) {
         width: 36px;
-    }
-`
-
-const Preview = styled.aside`
-    flex: 1;
-    min-width: 300px;
-    max-width: 520px;
-    background: ${vars.bg};
-    border-left: 1px solid ${vars.border};
-    padding: ${vars.pad};
-    border-radius: 6px;
-    box-sizing: border-box;
-
-    /* 모바일에서 결과가 폼 아래로 내려오도록 스타일 조정 */
-    @media (max-width: 900px) {
-        border-left: none;
-        border-top: 1px solid ${vars.border};
-        margin-top: 12px;
-        max-width: 100%;
     }
 `
 
