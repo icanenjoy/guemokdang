@@ -393,7 +393,7 @@ export default function Lastform({ onSubmit }) {
                     <Field key="menu">
                         <FeedbackLabel>
                             <Title>메뉴폐기</Title>
-                            <TextInput
+                            <Textarea
                                 name="menu"
                                 placeholder="폐기 항목 없음"
                                 value={form.menu}
@@ -404,7 +404,7 @@ export default function Lastform({ onSubmit }) {
                     <Field key="expiration">
                         <FeedbackLabel>
                             <Title>유통기한으로 인한 폐기</Title>
-                            <TextInput
+                            <Textarea
                                 name="expiration"
                                 placeholder="폐기 항목 없음"
                                 value={form.expiration}

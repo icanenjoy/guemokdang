@@ -91,6 +91,12 @@ export default function App() {
                     </TabButton>
                     <TabButton
                         type="button"
+                        active={active === 'last'}
+                        onClick={() => setActive('last')}>
+                        마감보고
+                    </TabButton>
+                    <TabButton
+                        type="button"
                         active={active === 'sales'}
                         onClick={() => setActive('sales')}>
                         매출
@@ -100,12 +106,6 @@ export default function App() {
                         active={active === 'internet'}
                         onClick={() => setActive('internet')}>
                         인터넷 발주
-                    </TabButton>
-                    <TabButton
-                        type="button"
-                        active={active === 'last'}
-                        onClick={() => setActive('last')}>
-                        마감보고
                     </TabButton>
                     <TabButton
                         type="button"
