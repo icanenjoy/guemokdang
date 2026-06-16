@@ -370,7 +370,13 @@ export default function CheckForm({ onSubmit }) {
         addMenu('서울빙수', 'seoulHall', 'seoulTakeout', null, 'seoulFeedback')
 
         // 레몬 진저 빙수
-        addMenu('딸기빙수', 'lemonHall', 'lemonTakeout', null, 'lemonFeedback')
+        addMenu(
+            '레몬진저빙수',
+            'lemonHall',
+            'lemonTakeout',
+            null,
+            'lemonFeedback',
+        )
 
         // 금옥팥죽
         addMenu(
@@ -430,7 +436,7 @@ export default function CheckForm({ onSubmit }) {
         )
 
         addDrink(
-            `커피 `,
+            `커피`,
             'coffeeIceHall',
             'coffeeIceTakeout',
             'coffeeHotHall',
